@@ -1,4 +1,4 @@
-# Nestjs specific
+# NestJS specific
 /dist
 /node_modules
 /build
@@ -18,7 +18,41 @@ lerna-debug.log*
 .env.development
 .env.test
 .env.production
+.env.local
 
 # temp directory
 .temp
 .tmp
+
+# Next.js specific
+.next/
+out/
+.vercel
+next-env.d.ts
+.swc/
+
+# Docker specific
+docker-compose.override.yml
+.docker/
+*.dockerignore.local
+
+# IDE and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Coverage and testing
+coverage/
+.nyc_output
+.coverage
+*.lcov
+
+# Runtime and cache
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
