@@ -1,0 +1,318 @@
+# =============================================================================
+# Development Docker Compose - Hot Reload Environment
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: market-manager-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: market_manager_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+      - ./docker/postgres/dev-postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: |
+      postgres 
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c log_statement=all
+      -c log_min_duration_statement=0
+      -c logging_collector=on
+      -c log_directory=/var/log/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d market_manager_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - market-manager-dev
+
+  # Redis Cache
+  redis:
+    image: redis:8-alpine
+    container_name: market-manager-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+      - ./docker/redis/dev-redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - market-manager-dev
+
+  # PgBouncer Connection Pooler
+  pgbouncer:
+    image: pgbouncer/pgbouncer:latest
+    container_name: market-manager-pgbouncer-dev
+    restart: unless-stopped
+    environment:
+      DATABASES_HOST: postgres
+      DATABASES_PORT: 5432
+      DATABASES_USER: postgres
+      DATABASES_PASSWORD: postgres
+      DATABASES_DBNAME: market_manager_dev
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 100
+      DEFAULT_POOL_SIZE: 20
+      LISTEN_PORT: 6432
+    ports:
+      - "6432:6432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - market-manager-dev
+
+  # Main API Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: backend-dev
+    container_name: market-manager-api-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@pgbouncer:6432/market_manager_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-secret-key-change-in-production
+      API_PORT: 3001
+      LOG_LEVEL: debug
+      ENABLE_CORS: true
+      ENABLE_SWAGGER: true
+    ports:
+      - "3001:3001"
+      - "9229:9229"  # Debug port
+    volumes:
+      # Hot reload - mount backend source code
+      - ./backend/src:/app/src:ro
+      - ./backend/test:/app/test:ro
+      - ./backend/prisma:/app/prisma:ro
+      - ./backend/package*.json:/app/
+      # Node modules and build cache (named volumes for performance)
+      - api_node_modules:/app/node_modules
+      - api_dist:/app/dist
+      # Logs and uploads
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - market-manager-dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: frontend-dev
+    container_name: market-manager-frontend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      # Hot reload - mount frontend source code
+      - ./frontend/src:/app/src:ro
+      - ./frontend/app:/app/app:ro
+      - ./frontend/components:/app/components:ro
+      - ./frontend/lib:/app/lib:ro
+      - ./frontend/public:/app/public:ro
+      - ./frontend/styles:/app/styles:ro
+      - ./frontend/package*.json:/app/
+      - ./frontend/next.config.js:/app/next.config.js:ro
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js:ro
+      - ./frontend/tsconfig.json:/app/tsconfig.json:ro
+      # Node modules (named volume for performance)
+      - frontend_node_modules:/app/node_modules
+      - frontend_next:/app/.next
+    depends_on:
+      - api
+    networks:
+      - market-manager-dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Background Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: backend-dev
+    container_name: market-manager-worker-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@pgbouncer:6432/market_manager_dev
+      REDIS_URL: redis://redis:6379
+      WORKER_CONCURRENCY: 5
+      LOG_LEVEL: debug
+    volumes:
+      # Hot reload - mount backend source code
+      - ./backend/src:/app/src:ro
+      - ./backend/prisma:/app/prisma:ro
+      - ./backend/package*.json:/app/
+      # Node modules (shared with api)
+      - api_node_modules:/app/node_modules
+      # Logs
+      - ./logs:/app/logs
+    command: ["npm", "run", "worker:dev"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - market-manager-dev
+
+  # Database Migration Runner (run-once service)
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: backend-dev
+    container_name: market-manager-migrate-dev
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/market_manager_dev
+    volumes:
+      - ./backend/prisma:/app/prisma:ro
+      - ./sql:/app/sql:ro
+      - api_node_modules:/app/node_modules
+    command: |
+      sh -c "
+        echo 'Waiting for database...'
+        until pg_isready -h postgres -p 5432 -U postgres; do sleep 2; done
+        echo 'Running Prisma migrations...'
+        npx prisma migrate deploy
+        echo 'Applying custom SQL functions (if exists)...'
+        [ -f /app/sql/functions.sql ] && psql postgresql://postgres:postgres@postgres:5432/market_manager_dev -f /app/sql/functions.sql || echo 'No functions.sql found'
+        echo 'Creating indexes (if exists)...'
+        [ -f /app/sql/indexes.sql ] && psql postgresql://postgres:postgres@postgres:5432/market_manager_dev -f /app/sql/indexes.sql || echo 'No indexes.sql found'
+        echo 'Creating triggers (if exists)...'
+        [ -f /app/sql/triggers.sql ] && psql postgresql://postgres:postgres@postgres:5432/market_manager_dev -f /app/sql/triggers.sql || echo 'No triggers.sql found'
+        echo 'Migration completed!'
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - market-manager-dev
+    profiles: ["migrate"]
+
+  # Database Seeder (run-once service)
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: backend-dev
+    container_name: market-manager-seed-dev
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/market_manager_dev
+    volumes:
+      - ./backend/prisma:/app/prisma:ro
+      - ./sql:/app/sql:ro
+      - api_node_modules:/app/node_modules
+    command: |
+      sh -c "
+        echo 'Waiting for database...'
+        until pg_isready -h postgres -p 5432 -U postgres; do sleep 2; done
+        echo 'Seeding database...'
+        npx prisma db seed
+        echo 'Seeding category data (if exists)...'
+        [ -f /app/sql/seed-categories.sql ] && psql postgresql://postgres:postgres@postgres:5432/market_manager_dev -f /app/sql/seed-categories.sql || echo 'No seed-categories.sql found'
+        echo 'Seeding completed!'
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - market-manager-dev
+    profiles: ["seed"]
+
+  # Redis Commander (Redis GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: market-manager-redis-gui-dev
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - market-manager-dev
+    profiles: ["tools"]
+
+  # pgAdmin (PostgreSQL GUI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: market-manager-pgadmin-dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@marketmanager.local
+      PGADMIN_DEFAULT_PASSWORD: devpassword
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_dev_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - market-manager-dev
+    profiles: ["tools"]
+
+networks:
+  market-manager-dev:
+    name: market-manager-dev
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+    name: market-manager-postgres-dev-data
+  redis_dev_data:
+    name: market-manager-redis-dev-data
+  pgadmin_dev_data:
+    name: market-manager-pgadmin-dev-data
+  api_node_modules:
+    name: market-manager-api-node-modules-dev
+  api_dist:
+    name: market-manager-api-dist-dev
+  frontend_node_modules:
+    name: market-manager-frontend-node-modules-dev
+  frontend_next:
+    name: market-manager-frontend-next-dev

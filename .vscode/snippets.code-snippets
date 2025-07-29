@@ -1,0 +1,258 @@
+{
+  // React Component Snippets
+  "React Component": {
+    "prefix": "rfc",
+    "body": [
+      "interface ${1:ComponentName}Props {",
+      "  $2",
+      "}",
+      "",
+      "export function ${1:ComponentName}({ $3 }: ${1:ComponentName}Props) {",
+      "  return (",
+      "    <div>",
+      "      $0",
+      "    </div>",
+      "  )",
+      "}"
+    ],
+    "description": "Create a React functional component with TypeScript"
+  },
+
+  "React Component with State": {
+    "prefix": "rfcs",
+    "body": [
+      "import { useState } from 'react'",
+      "",
+      "interface ${1:ComponentName}Props {",
+      "  $2",
+      "}",
+      "",
+      "export function ${1:ComponentName}({ $3 }: ${1:ComponentName}Props) {",
+      "  const [${4:state}, set${4/(.*)/${4:/capitalize}/}] = useState$5($6)",
+      "",
+      "  return (",
+      "    <div>",
+      "      $0",
+      "    </div>",
+      "  )",
+      "}"
+    ],
+    "description": "Create a React functional component with useState hook"
+  },
+
+  // Zustand Store Snippet
+  "Zustand Store": {
+    "prefix": "zustand",
+    "body": [
+      "import { create } from 'zustand'",
+      "import { devtools } from 'zustand/middleware'",
+      "",
+      "interface ${1:StoreName}State {",
+      "  $2",
+      "}",
+      "",
+      "interface ${1:StoreName}Actions {",
+      "  $3",
+      "}",
+      "",
+      "type ${1:StoreName}Store = ${1:StoreName}State & ${1:StoreName}Actions",
+      "",
+      "export const use${1:StoreName}Store = create<${1:StoreName}Store>()(",
+      "  devtools(",
+      "    (set, get) => ({",
+      "      // State",
+      "      $4",
+      "",
+      "      // Actions", 
+      "      $5",
+      "    }),",
+      "    {",
+      "      name: '${1/(.*)/${1:/downcase}/}-store'",
+      "    }",
+      "  )",
+      ")"
+    ],
+    "description": "Create a Zustand store with TypeScript"
+  },
+
+  // TanStack Query Hooks
+  "TanStack Query Hook": {
+    "prefix": "usequery",
+    "body": [
+      "import { useQuery } from '@tanstack/react-query'",
+      "",
+      "export const use${1:ResourceName} = (${2:params}) => {",
+      "  return useQuery({",
+      "    queryKey: ['${1/(.*)/${1:/downcase}/}', ${3:params}],",
+      "    queryFn: () => api.get${1:ResourceName}(${2:params}),",
+      "    $4",
+      "  })",
+      "}"
+    ],
+    "description": "Create a TanStack Query useQuery hook"
+  },
+
+  "TanStack Mutation Hook": {
+    "prefix": "usemutation",
+    "body": [
+      "import { useMutation, useQueryClient } from '@tanstack/react-query'",
+      "",
+      "export const use${1:ActionName} = () => {",
+      "  const queryClient = useQueryClient()",
+      "",
+      "  return useMutation({",
+      "    mutationFn: api.${1/(.*)/${1:/downcase}/},",
+      "    onSuccess: () => {",
+      "      queryClient.invalidateQueries({ queryKey: ['${2:resource}'] })",
+      "    },",
+      "    $3",
+      "  })",
+      "}"
+    ],
+    "description": "Create a TanStack Query useMutation hook"
+  },
+
+  // Zod Schema Snippets
+  "Zod Schema": {
+    "prefix": "zodschema",
+    "body": [
+      "import { z } from 'zod'",
+      "",
+      "export const ${1:SchemaName}Schema = z.object({",
+      "  $2",
+      "})",
+      "",
+      "export type ${1:SchemaName} = z.infer<typeof ${1:SchemaName}Schema>"
+    ],
+    "description": "Create a Zod validation schema"
+  },
+
+  // NestJS Controller
+  "NestJS Controller": {
+    "prefix": "nestcontroller",
+    "body": [
+      "import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common'",
+      "import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'",
+      "",
+      "@ApiTags('${1/(.*)/${1:/downcase}/}')",
+      "@Controller('${1/(.*)/${1:/downcase}/}')",
+      "export class ${1:ResourceName}Controller {",
+      "  constructor(private readonly ${1/(.*)/${1:/downcase}/}Service: ${1:ResourceName}Service) {}",
+      "",
+      "  @Get()",
+      "  @ApiOperation({ summary: 'Get all ${1/(.*)/${1:/downcase}/}' })",
+      "  @ApiResponse({ status: 200, description: 'Return all ${1/(.*)/${1:/downcase}/}.' })",
+      "  findAll() {",
+      "    return this.${1/(.*)/${1:/downcase}/}Service.findAll()",
+      "  }",
+      "",
+      "  @Get(':id')",
+      "  @ApiOperation({ summary: 'Get ${1/(.*)/${1:/downcase}/} by id' })",
+      "  findOne(@Param('id') id: string) {",
+      "    return this.${1/(.*)/${1:/downcase}/}Service.findOne(id)",
+      "  }",
+      "",
+      "  @Post()",
+      "  @ApiOperation({ summary: 'Create ${1/(.*)/${1:/downcase}/}' })",
+      "  create(@Body() create${1:ResourceName}Dto: Create${1:ResourceName}Dto) {",
+      "    return this.${1/(.*)/${1:/downcase}/}Service.create(create${1:ResourceName}Dto)",
+      "  }",
+      "",
+      "  @Put(':id')",
+      "  @ApiOperation({ summary: 'Update ${1/(.*)/${1:/downcase}/}' })",
+      "  update(@Param('id') id: string, @Body() update${1:ResourceName}Dto: Update${1:ResourceName}Dto) {",
+      "    return this.${1/(.*)/${1:/downcase}/}Service.update(id, update${1:ResourceName}Dto)",
+      "  }",
+      "",
+      "  @Delete(':id')",
+      "  @ApiOperation({ summary: 'Delete ${1/(.*)/${1:/downcase}/}' })",
+      "  remove(@Param('id') id: string) {",
+      "    return this.${1/(.*)/${1:/downcase}/}Service.remove(id)",
+      "  }",
+      "}"
+    ],
+    "description": "Create a NestJS controller with CRUD operations"
+  },
+
+  // NestJS Service
+  "NestJS Service": {
+    "prefix": "nestservice",
+    "body": [
+      "import { Injectable } from '@nestjs/common'",
+      "import { PrismaService } from '../prisma/prisma.service'",
+      "",
+      "@Injectable()",
+      "export class ${1:ResourceName}Service {",
+      "  constructor(private prisma: PrismaService) {}",
+      "",
+      "  async findAll() {",
+      "    return this.prisma.${1/(.*)/${1:/downcase}/}.findMany()",
+      "  }",
+      "",
+      "  async findOne(id: string) {",
+      "    return this.prisma.${1/(.*)/${1:/downcase}/}.findUnique({",
+      "      where: { id }",
+      "    })",
+      "  }",
+      "",
+      "  async create(data: Create${1:ResourceName}Dto) {",
+      "    return this.prisma.${1/(.*)/${1:/downcase}/}.create({",
+      "      data",
+      "    })",
+      "  }",
+      "",
+      "  async update(id: string, data: Update${1:ResourceName}Dto) {",
+      "    return this.prisma.${1/(.*)/${1:/downcase}/}.update({",
+      "      where: { id },",
+      "      data",
+      "    })",
+      "  }",
+      "",
+      "  async remove(id: string) {",
+      "    return this.prisma.${1/(.*)/${1:/downcase}/}.delete({",
+      "      where: { id }",
+      "    })",
+      "  }",
+      "}"
+    ],
+    "description": "Create a NestJS service with CRUD operations"
+  },
+
+  // Prisma Model
+  "Prisma Model": {
+    "prefix": "prismamodel",
+    "body": [
+      "model ${1:ModelName} {",
+      "  id        String   @id @default(cuid())",
+      "  $2",
+      "  createdAt DateTime @default(now())",
+      "  updatedAt DateTime @updatedAt",
+      "",
+      "  @@map(\"${1/(.*)/${1:/downcase}/}s\")",
+      "}"
+    ],
+    "description": "Create a Prisma model"
+  },
+
+  // Docker Compose Service
+  "Docker Service": {
+    "prefix": "dockerservice",
+    "body": [
+      "${1:service-name}:",
+      "  image: ${2:image}",
+      "  container_name: ${3:container-name}",
+      "  restart: unless-stopped",
+      "  environment:",
+      "    ${4:ENV_VAR}: ${5:value}",
+      "  ports:",
+      "    - \"${6:host-port}:${7:container-port}\"",
+      "  volumes:",
+      "    - ${8:volume}:/app",
+      "  networks:",
+      "    - ${9:network-name}",
+      "  depends_on:",
+      "    - ${10:dependency}"
+    ],
+    "description": "Create a Docker Compose service definition"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "folders": [
+    {
+      "name": "🏠 Root",
+      "path": "."
+    },
+    {
+      "name": "🎨 Frontend",
+      "path": "./frontend"
+    },
+    {
+      "name": "⚙️ Backend",
+      "path": "./backend"
+    },
+    {
+      "name": "🐳 Docker",
+      "path": "./docker"
+    },
+    {
+      "name": "📚 Documentation",
+      "path": "./docs"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.next": true,
+      "**/coverage": true,
+      "**/uploads": true,
+      "**/logs": true,
+      "**/.DS_Store": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.next": true,
+      "**/coverage": true,
+      "**/uploads": true,
+      "**/logs": true
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.completeFunctionCalls": true,
+    "editor.suggestSelection": "first",
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue"
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss", 
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "prisma.prisma",
+      "ms-azuretools.vscode-docker",
+      "eamodio.gitlens",
+      "rangav.vscode-thunder-client"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🚀 Start Development Environment",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "docker:dev:up"],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "🛑 Stop Development Environment",
+        "type": "shell", 
+        "command": "npm",
+        "args": ["run", "docker:dev:down"],
+        "group": "build"
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🔍 Debug Full Stack",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/scripts/debug-full-stack.js",
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+}

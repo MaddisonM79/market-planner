@@ -1,0 +1,61 @@
+{
+  "recommendations": [
+    // TypeScript & JavaScript
+    "ms-vscode.vscode-typescript-next",
+    
+    // React & Next.js
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-close-tag",
+    "formulahendry.auto-rename-tag",
+    "ms-vscode.vscode-json",
+    
+    // ESLint & Prettier
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    
+    // Database & Backend
+    "prisma.prisma",
+    "ms-vscode.vscode-json",
+    
+    // Docker
+    "ms-azuretools.vscode-docker",
+    
+    // Git
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    
+    // Productivity
+    "christian-kohler.path-intellisense",
+    "bradlc.vscode-tailwindcss",
+    "rangav.vscode-thunder-client",
+    "ms-vscode.vscode-json",
+    
+    // Markdown
+    "yzhang.markdown-all-in-one",
+    
+    // Utilities
+    "streetsidesoftware.code-spell-checker",
+    "gruntfuggly.todo-tree",
+    "aaron-bond.better-comments",
+    "pkief.material-icon-theme",
+    "zhuangtongfa.material-theme",
+    
+    // Auto-completion
+    "tabnine.tabnine-vscode",
+    
+    // Environment
+    "mikestead.dotenv",
+    
+    // Testing (when implemented)
+    "ms-vscode.vscode-jest",
+    
+    // Additional React Tools
+    "dsznajder.es7-react-js-snippets",
+    "burkeholland.simple-react-snippets"
+  ],
+  "unwantedRecommendations": [
+    "hookyqr.beautify",
+    "ms-vscode.vscode-typescript",
+    "formulahendry.code-runner"
+  ]
+}

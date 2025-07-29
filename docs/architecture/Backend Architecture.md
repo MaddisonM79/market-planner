@@ -1,4 +1,4 @@
-# Yarn Crafting SaaS - Backend Architecture
+# Market Manager - Backend Architecture
 
 ## **Implementation Notes & Architecture Decisions**
 

@@ -36,8 +36,7 @@ docker-compose.override.yml
 .docker/
 *.dockerignore.local
 
-# IDE and OS
-.vscode/
+# IDE and OS  
 .idea/
 *.swp
 *.swo

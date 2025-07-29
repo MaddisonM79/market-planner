@@ -1,0 +1,81 @@
+# =============================================================================
+# Development Dockerfile - Backend API with Hot Reload Support
+# =============================================================================
+
+FROM node:22-alpine AS backend-dev
+
+# Install system dependencies
+RUN apk add --no-cache \
+    postgresql-client \
+    redis \
+    curl \
+    bash \
+    git
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
+# Copy backend package files
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
+
+# Install all dependencies (including devDependencies for development)
+RUN npm ci
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Copy backend source code
+COPY backend/ .
+
+# Change ownership to non-root user
+RUN chown -R nestjs:nodejs /app
+USER nestjs
+
+# Expose application port and debug port
+EXPOSE 3001 9229
+
+# Development command with hot reload and debugging
+CMD ["npm", "run", "start:dev"]
+
+# =============================================================================
+# Development Dockerfile - Frontend with Hot Reload Support
+# =============================================================================
+
+FROM node:22-alpine AS frontend-dev
+
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    bash \
+    git
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Copy frontend package files
+COPY frontend/package*.json ./
+
+# Install all dependencies (including devDependencies for development)
+RUN npm ci
+
+# Copy frontend source code
+COPY frontend/ .
+
+# Change ownership to non-root user
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+# Expose Next.js development port
+EXPOSE 3000
+
+# Development command with hot reload
+CMD ["npm", "run", "dev"]

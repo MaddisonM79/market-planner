@@ -1,0 +1,301 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // Docker Development Tasks
+    {
+      "label": "Docker: Start Dev Environment",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "docker:dev:up"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Stop Dev Environment", 
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "docker:dev:down"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Docker: Rebuild All Services",
+      "type": "shell", 
+      "command": "npm",
+      "args": ["run", "docker:dev:rebuild"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always", 
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Docker: Rebuild Backend Only",
+      "type": "shell",
+      "command": "npm", 
+      "args": ["run", "docker:dev:rebuild:backend"],
+      "group": "build"
+    },
+    {
+      "label": "Docker: Rebuild Frontend Only",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "docker:dev:rebuild:frontend"], 
+      "group": "build"
+    },
+    {
+      "label": "Docker: View Logs",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "docker:dev:logs"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+
+    // Database Tasks
+    {
+      "label": "Database: Run Migrations",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "docker:dev:migrate"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Database: Seed Data",
+      "type": "shell",
+      "command": "npm", 
+      "args": ["run", "docker:dev:seed"],
+      "group": "build"
+    },
+    {
+      "label": "Database: Start Tools (pgAdmin + Redis Commander)",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "docker:dev:tools"],
+      "group": "build"
+    },
+
+    // Frontend Tasks  
+    {
+      "label": "Frontend: Install Dependencies",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install"],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Frontend: Start Dev Server",
+      "type": "shell", 
+      "command": "npm",
+      "args": ["run", "dev"],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "source": "ts",
+        "applyTo": "closedDocuments",
+        "fileLocation": ["relative", "${workspaceFolder}/frontend"],
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*ready - started server on.*",
+          "endsPattern": ".*Local:.*"
+        }
+      }
+    },
+    {
+      "label": "Frontend: Build",
+      "type": "shell",
+      "command": "npm", 
+      "args": ["run", "build"],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Frontend: Lint",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend" 
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+
+    // Backend Tasks
+    {
+      "label": "Backend: Install Dependencies",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install"],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Backend: Start Dev Server",
+      "type": "shell",
+      "command": "npm", 
+      "args": ["run", "start:dev"],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "isBackground": true
+    },
+    {
+      "label": "Backend: Build",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build"],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Backend: Lint",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "test",
+      "problemMatcher": ["$eslint-stylish"]
+    },
+
+    // Prisma Tasks
+    {
+      "label": "Prisma: Generate Client",
+      "type": "shell",
+      "command": "npx",
+      "args": ["prisma", "generate"],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Prisma: Studio",
+      "type": "shell",
+      "command": "npx",
+      "args": ["prisma", "studio"],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "isBackground": true
+    },
+    {
+      "label": "Prisma: Reset Database",
+      "type": "shell",
+      "command": "npx",
+      "args": ["prisma", "migrate", "reset"],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": "build"
+    },
+
+    // Git Tasks
+    {
+      "label": "Git: Status",
+      "type": "shell",  
+      "command": "git",
+      "args": ["status"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+
+    // Cleanup Tasks
+    {
+      "label": "Clean: All Node Modules",
+      "type": "shell",
+      "command": "rm",
+      "args": ["-rf", "frontend/node_modules", "backend/node_modules", "node_modules"],
+      "group": "build"
+    },
+    {
+      "label": "Clean: Docker Environment",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "docker:dev:clean"],
+      "group": "build"
+    }
+  ]
+}

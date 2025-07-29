@@ -1,4 +1,4 @@
-# **Yarn Crafting SaaS - Frontend Architecture**
+# **Market Manager - Frontend Architecture**
 
 ## **Product-Centric Approach**
 
