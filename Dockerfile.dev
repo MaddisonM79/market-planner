@@ -24,7 +24,7 @@ COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
 
 # Install all dependencies (including devDependencies for development)
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -65,7 +65,7 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY frontend/package*.json ./
 
 # Install all dependencies (including devDependencies for development)
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copy frontend source code
 COPY frontend/ .

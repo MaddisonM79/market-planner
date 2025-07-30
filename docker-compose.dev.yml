@@ -28,8 +28,7 @@ services:
       -c pg_stat_statements.track=all
       -c log_statement=all
       -c log_min_duration_statement=0
-      -c logging_collector=on
-      -c log_directory=/var/log/postgresql
+      -c logging_collector=off
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d market_manager_dev"]
       interval: 10s
@@ -61,6 +60,7 @@ services:
   # PgBouncer Connection Pooler
   pgbouncer:
     image: pgbouncer/pgbouncer:latest
+    platform: linux/amd64
     container_name: market-manager-pgbouncer-dev
     restart: unless-stopped
     environment:
@@ -89,6 +89,8 @@ services:
       target: backend-dev
     container_name: market-manager-api-dev
     restart: unless-stopped
+    env_file:
+      - .env.development
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@pgbouncer:6432/market_manager_dev
@@ -98,6 +100,8 @@ services:
       LOG_LEVEL: debug
       ENABLE_CORS: true
       ENABLE_SWAGGER: true
+      BETTERSTACK_TOKEN: ${BETTERSTACK_API_TOKEN:-q7T4bjb1NYY94aiYQogX72RP}
+      BETTERSTACK_INGESTION_URL: ${BETTERSTACK_API_INGESTION_URL:-s1460746.eu-nbg-2.betterstackdata.com}
     ports:
       - "3001:3001"
       - "9229:9229"  # Debug port
@@ -106,10 +110,10 @@ services:
       - ./backend/src:/app/src:ro
       - ./backend/test:/app/test:ro
       - ./backend/prisma:/app/prisma:ro
-      - ./backend/package*.json:/app/
+      - ./backend/package.json:/app/package.json:ro
+      - ./backend/package-lock.json:/app/package-lock.json:ro
       # Node modules and build cache (named volumes for performance)
       - api_node_modules:/app/node_modules
-      - api_dist:/app/dist
       # Logs and uploads
       - ./logs:/app/logs
       - ./uploads:/app/uploads
@@ -135,9 +139,13 @@ services:
       target: frontend-dev
     container_name: market-manager-frontend-dev
     restart: unless-stopped
+    env_file:
+      - .env.development
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_BETTERSTACK_TOKEN: ${BETTERSTACK_FRONTEND_TOKEN:-q7T4bjb1NYY94aiYQogX72RP}
+      NEXT_PUBLIC_BETTERSTACK_INGESTION_URL: ${BETTERSTACK_FRONTEND_INGESTION_URL:-s1460781.eu-nbg-2.betterstackdata.com}
     ports:
       - "3000:3000"
     volumes:
@@ -148,13 +156,13 @@ services:
       - ./frontend/lib:/app/lib:ro
       - ./frontend/public:/app/public:ro
       - ./frontend/styles:/app/styles:ro
-      - ./frontend/package*.json:/app/
+      - ./frontend/package.json:/app/package.json:ro
+      - ./frontend/package-lock.json:/app/package-lock.json:ro
       - ./frontend/next.config.js:/app/next.config.js:ro
       - ./frontend/tailwind.config.js:/app/tailwind.config.js:ro
-      - ./frontend/tsconfig.json:/app/tsconfig.json:ro
+      - ./frontend/tsconfig.json:/app/tsconfig.json
       # Node modules (named volume for performance)
       - frontend_node_modules:/app/node_modules
-      - frontend_next:/app/.next
     depends_on:
       - api
     networks:
@@ -174,17 +182,22 @@ services:
       target: backend-dev
     container_name: market-manager-worker-dev
     restart: unless-stopped
+    env_file:
+      - .env.development
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@pgbouncer:6432/market_manager_dev
       REDIS_URL: redis://redis:6379
       WORKER_CONCURRENCY: 5
       LOG_LEVEL: debug
+      BETTERSTACK_TOKEN: ${BETTERSTACK_WORKER_TOKEN:-q7T4bjb1NYY94aiYQogX72RP}
+      BETTERSTACK_INGESTION_URL: ${BETTERSTACK_WORKER_INGESTION_URL:-s1460779.eu-nbg-2.betterstackdata.com}
     volumes:
       # Hot reload - mount backend source code
       - ./backend/src:/app/src:ro
       - ./backend/prisma:/app/prisma:ro
-      - ./backend/package*.json:/app/
+      - ./backend/package.json:/app/package.json:ro
+      - ./backend/package-lock.json:/app/package-lock.json:ro
       # Node modules (shared with api)
       - api_node_modules:/app/node_modules
       # Logs
@@ -310,9 +323,5 @@ volumes:
     name: market-manager-pgadmin-dev-data
   api_node_modules:
     name: market-manager-api-node-modules-dev
-  api_dist:
-    name: market-manager-api-dist-dev
   frontend_node_modules:
     name: market-manager-frontend-node-modules-dev
-  frontend_next:
-    name: market-manager-frontend-next-dev
